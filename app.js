@@ -1,93 +1,36 @@
-var app = angular.module('flapperNews', ['ui.router']);
 
-app.config(['$stateProvider', '$urlRouterProvider',
-  function($stateProvider, $urlRouterProvider) {
-  $stateProvider
-    .state('home', {
-      url: '/home',
-      templateUrl: '/home.html',
-      controller: 'MainCtrl'
-    })
-    .state('posts', {
-      url: '/posts/{id}',
-      templateUrl: '/posts.html',
-      controller: 'PostsCtrl'
-    });
+/**
+ * Module dependencies.
+ */
 
-  $urlRouterProvider.otherwise('home');
-}])
+var express = require('express');
+var routes = require('./routes');
+var user = require('./routes/user');
+var http = require('http');
+var path = require('path');
 
-app.factory('posts', [function() {
-  var o = {
-    posts: []
-  };
-  return o;
-}]);
+var app = express();
 
-app.controller('PostsCtrl', ['$scope', '$stateParams', 'posts',
-  function($scope, $stateParams, posts) {
-  $scope.post = posts.posts[$stateParams.id];
+// all environments
+app.set('port', process.env.PORT || 3000);
+app.set('views', path.join(__dirname, 'views'));
+app.set('view engine', 'ejs');
+app.use(express.favicon());
+app.use(express.logger('dev'));
+app.use(express.json());
+app.use(express.urlencoded());
+app.use(express.methodOverride());
+app.use(app.router);
+app.use(express.static(path.join(__dirname, 'public')));
 
-  $scope.addComment = function() {
-    if ($scope.body === '') {
-      return;
-    }
-    $scope.post.comments.push({
-      body: $scope.body,
-      author: 'user',
-      upvotes: 0
-    });
-    $scope.body = '';
-  };
+// development only
+if ('development' == app.get('env')) {
+  app.use(express.errorHandler());
+}
 
-  $scope.incrementUpvotes = function(comment) {
-    comment.upvotes += 1;
-  };
-}]);
+app.get('/', routes.index);
+app.get('/users', user.list);
 
-app.controller('MainCtrl', ['$scope', 'posts', function($scope, posts) {
-  $scope.posts = posts.posts;
-  // $scope.posts = [
-  //   {
-  //     title: 'post 1',
-  //     upvotes: 5
-  //   },
-  //   {
-  //     title: 'post 2',
-  //     upvotes: 2
-  //   },
-  //   {
-  //     title: 'post 3',
-  //     upvotes: 15
-  //   },
-  //   {
-  //     title: 'post 4',
-  //     upvotes: 9
-  //   },
-  //   {
-  //     title: 'post 5',
-  //     upvotes: 4
-  //   }
-  // ];
-
-  $scope.addPost = function() {
-    if ($scope.title === '') {
-      return;
-    }
-    $scope.posts.push({
-      title: $scope.title,
-      link: $scope.link,
-      upvotes: 0,
-      comments: [
-        {author: 'Joe', body: 'Cool post!', upvotes: 0},
-        {author: 'Bob', body: 'Great idea but everything is wrong!', upvotes: 0}
-      ]
-    });
-    $scope.title = '';
-    $scope.link = '';
-  };
-
-  $scope.incrementUpvotes = function(post) {
-    post.upvotes += 1;
-  };
-}]);
+http.createServer(app).listen(app.get('port'), function(){
+  console.log('Express server listening on port ' + app.get('port'));
+});
