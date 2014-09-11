@@ -44,8 +44,8 @@ app.put('/posts/:post/upvote', routes.upvote);
 // Comment routes
 app.post('/posts/:post/comments', routes.commCreate);
 app.param('comment', routes.commLoad);
-app.get('/posts/:post/:comment', routes.commRetrieve);
-app.put('/posts/:post/:comment/upvote', routes.commUpvote);
+app.get('/posts/:post/comments/:comment', routes.commRetrieve);
+app.put('/posts/:post/comments/:comment/upvote', routes.commUpvote);
 
 // Initiate server
 http.createServer(app).listen(app.get('port'), function(){
